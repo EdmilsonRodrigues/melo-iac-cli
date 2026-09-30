@@ -1,0 +1,58 @@
+[project]
+name = "melo-iac-cli"
+version = "0.1.0"
+description = "Command-line interface built in Python to interact with the Melo-IaC API, manage workspaces, and trigger manual syncs."
+authors = [
+    {name = "Edmilson Rodrigues",email = "edmilson.rodriguesn38@gmail.com"}
+]
+license = "AGPL3"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+lint = [
+    "black (>=26.5.1,<27.0.0)",
+    "isort (>=9.0.2,<10.0.0)",
+    "flake8 (>=7.4.1,<8.0.0)",
+    "flake8-pyproject (>=1.2.4,<2.0.0)",
+    "zuban (>=0.10.0,<0.11.0)",
+    "bandit (>=1.9.4,<2.0.0)",
+]
+
+[tool.black]
+line-length = 79
+target-version = ["py314"]
+skip-string-normalization = false
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.bandit]
+targets = ["src"]
+exclude_dirs = ["tests", ".venv", "build", "dist"]
+skips = ["B101"]
+
+[tool.flake8]
+max-line-length = 79
+select = ["F"]
+exclude = [".git", "__pycache__", ".venv", "build", "dist"]
+
+[tool.zuban]
+python-version = "3.14"
+mode = "default"
+strict = true
+warn_unused_ignores = true
