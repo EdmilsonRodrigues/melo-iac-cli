@@ -12,6 +12,8 @@ dependencies = [
     "httpx (>=0.28.1,<0.29.0)"
 ]
 
+[project.scripts]
+melo-iac = "melo_iac_cli.cli:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -52,7 +54,7 @@ select = ["F"]
 exclude = [".git", "__pycache__", ".venv", "build", "dist"]
 
 [tool.zuban]
-python-version = "3.14"
+python_version = "3.14"
 mode = "default"
 strict = true
 warn_unused_ignores = true
