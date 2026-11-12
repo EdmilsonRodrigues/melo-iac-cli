@@ -32,6 +32,17 @@ class CliTest(unittest.TestCase):
         self.addCleanup(client.close)
         return AuthService(token_store=self.token_store, client=client)
 
+    def make_unreachable_service(self) -> AuthService:
+        def down_server(request: httpx.Request) -> httpx.Response:
+            raise httpx.ConnectError("connection refused", request=request)
+
+        client = httpx.Client(
+            transport=httpx.MockTransport(down_server),
+            base_url="http://melo.test",
+        )
+        self.addCleanup(client.close)
+        return AuthService(token_store=self.token_store, client=client)
+
     def test_auth_logout_removes_saved_token(self) -> None:
         self.token_store.save("abcd1234")
 
@@ -110,4 +121,45 @@ class CliTest(unittest.TestCase):
 
         self.assertEqual(exit_code, 1)
         self.assertIn("invalid username or password", stderr.getvalue())
+        self.assertIsNone(self.token_store.load())
+
+    def test_auth_login_reports_server_errors(self) -> None:
+        stderr = io.StringIO()
+
+        with redirect_stderr(stderr):
+            exit_code = run(
+                ["auth", "login", "--username", "ed", "--password", "secret"],
+                auth_service=self.make_service(httpx.Response(500)),
+                settings=Settings.from_env({}),
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("error: server returned 500", stderr.getvalue())
+
+    def test_auth_login_reports_unreachable_server(self) -> None:
+        stderr = io.StringIO()
+
+        with redirect_stderr(stderr):
+            exit_code = run(
+                ["auth", "login", "--username", "ed", "--password", "secret"],
+                auth_service=self.make_unreachable_service(),
+                settings=Settings.from_env({}),
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("error: could not reach server", stderr.getvalue())
+
+    def test_auth_logout_warns_when_revocation_fails(self) -> None:
+        self.token_store.save("abcd1234")
+        stderr = io.StringIO()
+
+        with redirect_stderr(stderr):
+            exit_code = run(
+                ["auth", "logout"],
+                auth_service=self.make_service(httpx.Response(500)),
+                settings=Settings.from_env({}),
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("logged out locally", stderr.getvalue())
         self.assertIsNone(self.token_store.load())
