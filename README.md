@@ -32,6 +32,14 @@ The CLI communicates with the `melo-iac` Go REST server. Configure the server UR
 export MELO_API_URL="http://localhost:8080" # or your cluster REST API ingress URL
 ```
 
+> **Local development:** while the REST server does not proxy auth requests
+> yet, point the CLI straight at the auth service, which listens on port
+> `8081` by default (`AUTH_PORT`):
+>
+> ```bash
+> export MELO_API_URL="http://localhost:8081"
+> ```
+
 ---
 
 ## Usage Guide
@@ -51,6 +59,11 @@ You can also not pass the password, and a prompt will be shown to write it.
 ``` bash
 melo-iac auth logout
 ```
+
+Revokes the token on the server and removes the local credentials file
+(`~/.config/melo-iac/credentials`). The local file is removed even if the
+server cannot be reached; in that case a warning is printed and the token
+stays valid on the server until it expires.
 
 ### 3. List All Apps
 ```bash

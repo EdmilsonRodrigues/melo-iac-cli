@@ -7,7 +7,11 @@ from typing import Final
 
 import httpx
 
-from melo_iac_cli.auth.auth_service import AuthService, InvalidCredentialsError
+from melo_iac_cli.auth.auth_service import (
+    AuthError,
+    AuthService,
+    InvalidCredentialsError,
+)
 from melo_iac_cli.auth.token_store import TokenStore
 from melo_iac_cli.config import ENV_USERNAME, Settings
 
@@ -53,8 +57,19 @@ def run(
         except InvalidCredentialsError:
             print("error: invalid username or password", file=sys.stderr)
             return EXIT_ERROR
+        except AuthError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return EXIT_ERROR
     elif args.auth_command == "logout":
-        auth_service.logout()
+        try:
+            auth_service.logout()
+        except AuthError as e:
+            print(
+                f"warning: logged out locally, but the server could not "
+                f"revoke the token ({e})",
+                file=sys.stderr,
+            )
+            return EXIT_ERROR
     return EXIT_OK
 
 
