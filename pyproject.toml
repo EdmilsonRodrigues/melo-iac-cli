@@ -29,6 +29,10 @@ lint = [
     "bandit (>=1.9.4,<2.0.0)",
 ]
 
+[tool.isort]
+profile = "black"
+line_length = 79
+
 [tool.black]
 line-length = 79
 target-version = ["py314"]
